@@ -1,17 +1,42 @@
 "use strict";
 
 const socket = io("http://localhost:3000");
-
-document.querySelector("form").addEventListener("submit", (event) => {
+//const socket = io(
+//"https://stream-server-hennaeko.norwayeast.cloudapp.azure.com"
+//);
+document.querySelector("#msg-input").addEventListener("submit", (event) => {
   event.preventDefault();
   const inp = document.getElementById("message");
-  console.log("emitting:", inp.value);
   socket.emit("chat message", inp.value);
   inp.value = "";
 });
 
-socket.on("chat message", (msg) => {
+document.querySelector("#join").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const username = document.getElementById("username");
+  const room = document.querySelector('input[name="room"]:checked').value;
+  socket.emit("join", username.value, room);
+  username.value = "";
+  document.querySelector("#join").style.display = "none";
+  document.querySelector("#msg-input").style.display = "";
+  document.querySelector("#log-out").style.display = "";
+  document.querySelector("#messages").style.display = "";
+});
+
+socket.on("chat message", (msg, username) => {
   const item = document.createElement("li");
-  item.innerHTML = msg;
+  item.innerHTML = username + ": " + msg;
   document.getElementById("messages").appendChild(item);
+});
+
+document.querySelector("#log-out").addEventListener("click", (event) => {
+  event.preventDefault();
+  socket.emit("leave");
+  messages.innerHTML = "";
+  location.reload();
+  return false;
+});
+
+socket.on("response", (msg) => {
+  console.log(msg);
 });
